@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="./dist/tapable.js"></script>
+  </head>
+  <body>
+    <script>
+      function exampleWithTapable(opts, hooksHandler) {
+        const hooks = {
+          find: new Tapable.SyncBailHook(["opts"], "findHook"),
+          reset: new Tapable.SyncHook(["item"], "resetHook")
+        };
+
+        // 设置默认的 hook plugin
+        hooks.find.tap("findByName", opts => {
+          return opts.list.find(it => it.name === opts.name);
+        });
+        hooks.reset.tap("reset", item => {
+          item.extra = {};
+        });
+
+        // 开发者可以对 Hooks 进行扩展
+        if (typeof hooksHandler === "function") {
+          hooksHandler(hooks);
+        }
+
+        // 执行流程
+        const foundItem = hooks.find.call(opts);
+        hooks.reset.call(foundItem);
+      }
+
+      const opts = {
+        list: [{ name: "a", id: "1", extra: { info: "1111" } }, { name: "a", id: "2", extra: { info: "2222" } }],
+        name: "a"
+      };
+      
+      exampleWithTapable(opts);
+      console.log("opts.list[0].extra: ", opts.list[0].extra);
+    </script>
+  </body>
+</html>
